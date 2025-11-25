@@ -1,0 +1,29 @@
+.newChatButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 12px 16px;
+  background-color: #4066ff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-bottom: 16px;
+}
+
+.newChatButton:hover {
+  background-color: #3355e0;
+}
+
+.plusIcon {
+  font-size: 18px;
+  margin-right: 8px;
+}
+
+.buttonText {
+  white-space: nowrap;
+}
