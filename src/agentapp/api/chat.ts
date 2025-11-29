@@ -1,21 +1,37 @@
-import { ChatRequest, ChatResponse } from '../types/chat';
+import { Message } from '../types/chat';
 
-// 模拟 AI 聊天接口，实际项目中替换为真实接口
-export const sendChatMessage = async (
-  data: ChatRequest
-): Promise<ChatResponse> => {
+const BACKEND_API_URL = 'http://localhost:3001/api/chat';
 
-  // 预设AI响应
-  const responses = [
-    '你好。',
-    '你好，我是一个 AI 助手。',
-    '你好呀',
-    '你好，很高兴遇见你',
-    '请问有什么可以帮到你？',
-  ];
 
-  return {
-    id: Date.now().toString(),
-    content: responses[Math.floor(Math.random() * responses.length)],
-  };
+interface ApiResponse {
+  content: string;
+}
+
+/**
+ * Sends the entire message history to the backend server.
+ * @param messages - The full array of messages in the current conversation.
+ * @returns The AI's response content.
+ */
+export const sendChatMessage = async (messages: Message[]): Promise<string> => {
+  try {
+    const response = await fetch(BACKEND_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ messages }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'API request failed');
+    }
+
+    const result: ApiResponse = await response.json();
+    return result.content;
+
+  } catch (error) {
+    console.error('Failed to send chat message:', error);
+    throw new Error('Failed to connect to the chat service. Please try again later.');
+  }
 };
