@@ -80,7 +80,16 @@ export const useChat = () => {
       timestamp: new Date(),
     };
 
-    // Optimistically update UI with user's message
+    // AI message placeholder
+    const aiMessageId = (Date.now() + 1).toString();
+    const aiMessagePlaceholder: Message = {
+      id: aiMessageId,
+      content: '', // Start with empty content
+      role: 'assistant',
+      timestamp: new Date(),
+    };
+
+    // Optimistically update UI with user's message and AI placeholder
     setConversations(prev =>
       prev.map(conv => {
         if (conv.id === activeConversationId) {
@@ -92,7 +101,7 @@ export const useChat = () => {
           return {
             ...conv,
             title: newTitle,
-            messages: [...conv.messages, userMessage],
+            messages: [...conv.messages, userMessage, aiMessagePlaceholder],
             updatedAt: new Date(),
           };
         }
@@ -104,57 +113,43 @@ export const useChat = () => {
     setError(null);
 
     try {
-      // The conversation history now includes the new user message
-      const updatedMessages = activeConversation ? [...activeConversation.messages, userMessage] : [userMessage];
-      
-      // Call the backend API
-      const aiContent = await sendChatMessage(updatedMessages);
+      const updatedMessages = activeConversation
+        ? [...activeConversation.messages, userMessage]
+        : [userMessage];
 
-      const aiMessage: Message = {
-        id: Date.now().toString(),
-        content: aiContent,
-        role: 'assistant',
-        timestamp: new Date(),
+      const onChunk = (chunk: string) => {
+        setConversations(prev =>
+          prev.map(conv => {
+            if (conv.id === activeConversationId) {
+              return {
+                ...conv,
+                messages: conv.messages.map(msg => {
+                  if (msg.id === aiMessageId) {
+                    return { ...msg, content: msg.content + chunk };
+                  }
+                  return msg;
+                }),
+                updatedAt: new Date(),
+              };
+            }
+            return conv;
+          })
+        );
       };
 
-      // Update UI with AI's response
-      setConversations(prev =>
-        prev.map(conv => {
-          if (conv.id === activeConversationId) {
-            // The user message is already in the conversation, so we just add the AI message
-            const finalMessages = conv.messages.map(m => m.id === userMessage.id ? userMessage : m);
-            if (!finalMessages.find(m => m.id === userMessage.id)) {
-                finalMessages.push(userMessage);
-            }
-            finalMessages.push(aiMessage);
-
-            // Find the correct conversation and add the AI message
-            const targetConversation = prev.find(c => c.id === activeConversationId);
-            if (targetConversation) {
-                 // The user message was already added, now add the AI message.
-                 // To avoid duplicates, we create a new list.
-                 const existingMessages = targetConversation.messages;
-                 return {
-                     ...conv,
-                     messages: [...existingMessages, aiMessage],
-                     updatedAt: new Date(),
-                 };
-            }
-          }
-          return conv;
-        })
-      );
+      // Call the backend API that now handles streaming
+      await sendChatMessage(updatedMessages, onChunk);
 
     } catch (err: any) {
       setError(err.message || '发送消息失败，请稍后再试');
       console.error('Chat error:', err);
-      // Optional: Revert optimistic update on error
+      // On error, remove the placeholder and the user message that triggered it
       setConversations(prev =>
         prev.map(conv => {
           if (conv.id === activeConversationId) {
             return {
               ...conv,
-              messages: conv.messages.filter(m => m.id !== userMessage.id),
+              messages: conv.messages.filter(m => m.id !== userMessage.id && m.id !== aiMessageId),
             };
           }
           return conv;
@@ -163,7 +158,7 @@ export const useChat = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [activeConversationId, activeConversation?.messages, isLoading, createNewConversation]);
+  }, [activeConversationId, activeConversation?.messages, isLoading]);
 
   return {
     conversations,

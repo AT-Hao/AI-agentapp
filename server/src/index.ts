@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import { HumanMessage, AIMessage } from '@langchain/core/messages';
-import { chatAgent } from './agent';
+import { chatAgent , streamLLMMessage} from './agent';
 import { Message } from './types';
 
 const app = express();
@@ -19,27 +19,20 @@ app.post('/api/chat', async (req, res) => {
     return res.status(400).json({ error: 'Invalid request body. "messages" array is required.' });
   }
 
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders(); // Flush the headers to establish the connection
+
   try {
-    // Convert the incoming message history to the format LangGraph expects
-    const langGraphMessages = messages.map((msg: Message) => {
-      return msg.role === 'user' ? new HumanMessage(msg.content) : new AIMessage(msg.content);
-    });
-
-    const currentState = {
-      messages: langGraphMessages,
-    };
-
-    // Invoke the agent
-    const result = await chatAgent.invoke(currentState);
-
-    // Extract the last message from the agent's response
-    const aiResponse = result.messages[result.messages.length - 1];
-
-    res.json({ content: aiResponse.content });
-
+    // Bypassing langgraph and directly streaming the LLM response
+    await streamLLMMessage(messages, res);
   } catch (error) {
-    console.error('API chat error:', error);
-    res.status(500).json({ error: 'An error occurred while processing your chat request.' });
+    console.error('API chat stream error:', error);
+    // If an error occurs, write an error event to the stream.
+    res.write(`data: {"error": "An error occurred while processing your chat request."}\n\n`);
+  } finally {
+    res.end();
   }
 });
 

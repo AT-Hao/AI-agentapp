@@ -39,12 +39,17 @@
 }
 
 .contentWrapper {
-  flex: 1;
+  display: flex;
+  flex-direction: column;
   max-width: calc(100% - 56px);
 }
 
 .user .contentWrapper {
-  text-align: right;
+  align-items: flex-end;
+}
+
+.assistant .contentWrapper {
+  align-items: flex-start;
 }
 
 .header {
@@ -75,6 +80,9 @@
   font-size: 15px;
   word-wrap: break-word;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  display: inline-block;
+  min-width: 80px;
+  width: fit-content;
 }
 
 .user .content {
