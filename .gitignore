@@ -2,10 +2,15 @@
 
 .pnp
 .pnp.js
+.env
 .env.local
 .env.*.local
 .history
+.vscode/
 *.log*
+
+.npmrc
+.nvmrc
 
 node_modules/
 .yarn-integrity

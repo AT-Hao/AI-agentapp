@@ -1,5 +1,5 @@
+import 'dotenv/config'
 
-// dotenv.config();
 interface ChatAgentConfig {
   LLM_API_ENDPOINT: string;
   API_KEY: string;
@@ -7,10 +7,10 @@ interface ChatAgentConfig {
   temperature: number;
 }
 
-// TODO: Move these values to environment variables for better security
+// 后续放入环境变量中
 export const chatAgentConfig: ChatAgentConfig = {
-  LLM_API_ENDPOINT: 'https://ark.cn-beijing.volces.com/api/v3/chat/completions',
-  API_KEY: "3c18b4a6-6ef5-477f-931a-fec34a64b6e9",
-  model: 'doubao-seed-1-6-250615',
+  LLM_API_ENDPOINT: process.env.LLM_API_ENDPOINT || '',
+  API_KEY: process.env.API_KEY || '',
+  model: process.env.MODEL || '',
   temperature: 0.9,
 };

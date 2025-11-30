@@ -3,9 +3,9 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
 import { HumanMessage, AIMessage } from '@langchain/core/messages';
-// 引入编译好的 LangGraph Agent
 import { chatAgent } from './agent';
 import { ConversationModel } from './models';
+
 
 const app = express();
 const port = 3001;

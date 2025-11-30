@@ -3,7 +3,7 @@ import styles from './index.module.css';
 
 interface TopbarProps {
   isMobile: boolean;
-  onToggleSidebar: () => void;   //待处理
+  onToggleSidebar: () => void;
 }
 
 const Topbar: React.FC<TopbarProps> = ({ isMobile, onToggleSidebar }) => {
