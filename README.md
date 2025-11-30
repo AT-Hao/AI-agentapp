@@ -8,6 +8,7 @@
 - 响应式设计，支持移动端和桌面端
 - 集成豆包大模型 API
 - 使用 LangGraph 构建智能代理
+- 使用MongoDB数据库缓存对话数据
 
 ## 环境变量配置
 
@@ -27,20 +28,17 @@ MODEL=doubao-lite-4k
 pnpm install
 ```
 
-## 启动开发服务器
+## 启动前端服务器
 
 ```bash
-pnpm dev
+pnpm run dev
 ```
 
-## 构建生产版本
+
+
+## 启动后端服务器
 
 ```bash
-pnpm build
-```
-
-## 预览生产构建
-
-```bash
-pnpm serve
+cd ./server
+pnpm start
 ```

@@ -5,16 +5,15 @@ export interface Message {
     role: 'user' | 'assistant';
     timestamp: Date;
   }
-  
+
   // Structure for a chat API request
   export interface ChatRequest {
     message: string;
     history: Message[];
   }
-  
+
   // Structure for a chat API response
   export interface ChatResponse {
     id: string;
     content: string;
   }
-  

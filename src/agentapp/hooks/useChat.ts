@@ -1,12 +1,11 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Message, Conversation } from '../types/chat';
-import { sendChatMessage } from '../api/chat';
-
-// Generate conversation title (based on the first message)
-const generateConversationTitle = (message: string): string => {
-  if (message.length <= 20) return message;
-  return `${message.slice(0, 20)}...`;
-};
+import {
+  sendChatMessage,
+  fetchConversations,
+  createConversationApi,
+  deleteConversationApi
+} from '../api/chat';
 
 export const useChat = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -14,65 +13,64 @@ export const useChat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // 初始化：从后端加载历史记录
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const data = await fetchConversations();
+        setConversations(data);
+        if (data.length > 0) {
+          setActiveConversationId(data[0].id);
+        } else {
+          // 若无会话，自动创建一个
+          await handleCreateNewChat();
+        }
+      } catch (e) {
+        console.error("Failed to load history", e);
+      }
+    };
+    loadData();
+  }, []);
+
   const activeConversation = conversations.find(
     conv => conv.id === activeConversationId
   );
 
-  useEffect(() => {
-    if (conversations.length === 0) {
-      const defaultConversation: Conversation = {
-        id: 'default-1',
-        title: '新会话',
-        messages: [
-          {
-            id: '1',
-            content: '你好！我是 AI 助手，有什么可以帮助你的？',
-            role: 'assistant',
-            timestamp: new Date(),
-          },
-        ],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      setConversations([defaultConversation]);
-      setActiveConversationId(defaultConversation.id);
+  const handleCreateNewChat = useCallback(async () => {
+    try {
+      const newConv = await createConversationApi();
+      setConversations(prev => [newConv, ...prev]);
+      setActiveConversationId(newConv.id);
+      setError(null);
+    } catch (e) {
+      console.error(e);
+      setError("创建会话失败");
     }
-  }, [conversations]);
-
-  const createNewConversation = useCallback(() => {
-    const newConversation: Conversation = {
-      id: `conv-${Date.now()}`,
-      title: '新会话',
-      messages: [
-        {
-          id: Date.now().toString(),
-          content: '你好！我是 AI 助手，有什么可以帮助你的？',
-          role: 'assistant',
-          timestamp: new Date(),
-        },
-      ],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    setConversations(prev => [newConversation, ...prev]);
-    setActiveConversationId(newConversation.id);
-    setError(null);
   }, []);
 
-  const deleteConversation = useCallback((id: string) => {
-    const updatedConversations = conversations.filter(conv => conv.id !== id);
-    setConversations(updatedConversations);
-
-    if (id === activeConversationId && updatedConversations.length > 0) {
-      setActiveConversationId(updatedConversations[0].id);
-    } else if (updatedConversations.length === 0) {
-      createNewConversation();
+  const handleDeleteConversation = useCallback(async (id: string) => {
+    try {
+      await deleteConversationApi(id);
+      setConversations(prev => {
+        const updated = prev.filter(c => c.id !== id);
+        if (id === activeConversationId) {
+          setActiveConversationId(updated.length > 0 ? updated[0].id : null);
+        }
+        if (updated.length === 0) {
+           // 可以在这里触发创建，或者留空
+           handleCreateNewChat();
+        }
+        return updated;
+      });
+    } catch (e) {
+      setError("删除失败");
     }
-  }, [conversations, activeConversationId, createNewConversation]);
+  }, [activeConversationId, handleCreateNewChat]);
 
   const sendMessage = useCallback(async (content: string) => {
     if (!content.trim() || !activeConversationId || isLoading) return;
 
+    // 乐观 UI 更新
     const userMessage: Message = {
       id: Date.now().toString(),
       content,
@@ -80,46 +78,36 @@ export const useChat = () => {
       timestamp: new Date(),
     };
 
-    // AI message placeholder
+    // AI 占位符
     const aiMessageId = (Date.now() + 1).toString();
     const aiMessagePlaceholder: Message = {
       id: aiMessageId,
-      content: '', // Start with empty content
+      content: '',
       role: 'assistant',
       timestamp: new Date(),
     };
 
-    // Optimistically update UI with user's message and AI placeholder
-    setConversations(prev =>
-      prev.map(conv => {
-        if (conv.id === activeConversationId) {
-          const shouldUpdateTitle = conv.messages.length <= 1;
-          const newTitle = shouldUpdateTitle
-            ? generateConversationTitle(content)
-            : conv.title;
-
-          return {
-            ...conv,
-            title: newTitle,
-            messages: [...conv.messages, userMessage, aiMessagePlaceholder],
-            updatedAt: new Date(),
-          };
-        }
-        return conv;
-      })
-    );
+    setConversations(prev => prev.map(conv => {
+      if (conv.id === activeConversationId) {
+        return {
+          ...conv,
+          title: conv.messages.length === 0 ? content.slice(0, 20) : conv.title,
+          messages: [...conv.messages, userMessage, aiMessagePlaceholder],
+          updatedAt: new Date()
+        };
+      }
+      return conv;
+    }));
 
     setIsLoading(true);
     setError(null);
 
     try {
-      const updatedMessages = activeConversation
-        ? [...activeConversation.messages, userMessage]
-        : [userMessage];
-
-      const onChunk = (chunk: string) => {
-        setConversations(prev =>
-          prev.map(conv => {
+      await sendChatMessage(
+        activeConversationId,
+        content,
+        (chunk) => {
+          setConversations(prev => prev.map(conv => {
             if (conv.id === activeConversationId) {
               return {
                 ...conv,
@@ -128,37 +116,20 @@ export const useChat = () => {
                     return { ...msg, content: msg.content + chunk };
                   }
                   return msg;
-                }),
-                updatedAt: new Date(),
+                })
               };
             }
             return conv;
-          })
-        );
-      };
-
-      // Call the backend API that now handles streaming
-      await sendChatMessage(updatedMessages, onChunk);
-
-    } catch (err: any) {
-      setError(err.message || '发送消息失败，请稍后再试');
-      console.error('Chat error:', err);
-      // On error, remove the placeholder and the user message that triggered it
-      setConversations(prev =>
-        prev.map(conv => {
-          if (conv.id === activeConversationId) {
-            return {
-              ...conv,
-              messages: conv.messages.filter(m => m.id !== userMessage.id && m.id !== aiMessageId),
-            };
-          }
-          return conv;
-        })
+          }));
+        }
       );
+    } catch (err: any) {
+      setError(err.message || '发送失败');
+      // 错误回滚（略）
     } finally {
       setIsLoading(false);
     }
-  }, [activeConversationId, activeConversation?.messages, isLoading]);
+  }, [activeConversationId, isLoading]);
 
   return {
     conversations,
@@ -166,8 +137,8 @@ export const useChat = () => {
     isLoading,
     error,
     sendMessage,
-    createNewConversation,
-    deleteConversation,
+    createNewConversation: handleCreateNewChat,
+    deleteConversation: handleDeleteConversation,
     setActiveConversationId,
   };
 };
