@@ -1,6 +1,6 @@
 .sidebar {
   width: 280px;
-  background-color: #fff;
+  background-color: #f9fafb;
   border-right: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
@@ -84,8 +84,7 @@
 }
 
 .active {
-  background-color: #eff6ff;
-  border-left: 3px solid #4066ff;
+  background-color: #deecff;
 }
 
 .conversationInfo {
@@ -112,7 +111,9 @@
   border: none;
   color: #9ca3af;
   cursor: pointer;
-  padding: 4px;
+  /* padding: 4px; */
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   opacity: 0;
   transition: all 0.2s;

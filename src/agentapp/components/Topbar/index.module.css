@@ -27,6 +27,7 @@
 .logo {
   display: flex;
   align-items: center;
+  justify-content: center;
   flex: 1;
 }
 
@@ -36,8 +37,9 @@
 }
 
 .logoText {
-  font-size: 18px;
+  font-size: 24px;
   font-weight: 600;
+  width: fit-content;
   color: #111827;
   margin: 0;
 }

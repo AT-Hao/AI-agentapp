@@ -3,7 +3,7 @@
   flex-direction: column;
   height: 100%;
   width: 100%;
-  background-color: #f9fafb;
+  background-color: #fff;
   overflow: hidden;
 }
 
@@ -12,7 +12,6 @@
   height: 64px;
   display: flex;
   align-items: center;
-  border-bottom: 1px solid #e5e7eb;
   background-color: #fff;
 }
 
@@ -101,7 +100,6 @@
 
 .inputContainer {
   background-color: #fff;
-  border-top: 1px solid #e5e7eb;
   padding: 16px;
 }
 

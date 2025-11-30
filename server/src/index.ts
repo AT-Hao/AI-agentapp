@@ -100,9 +100,8 @@ app.post('/api/chat', async (req, res) => {
     });
 
     // 调用 LangGraph 智能体
-    // 注意：这里使用 invoke，会等待整个 Graph 执行完毕（非流式）
     // 这是为了确保逻辑完全由 Graph 接管。
-    const result = await chatAgent.invoke({ messages: graphInputMessages });
+    const result = await chatAgent.invoke({ messages: graphInputMessages });  //不能使用流式
 
     // 获取 AI 的回复
     const lastMessage = result.messages[result.messages.length - 1];

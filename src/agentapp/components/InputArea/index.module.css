@@ -32,17 +32,17 @@
 }
 
 .sendButton {
-  padding: 0 24px;
   background-color: #4066ff;
   color: #fff;
   border: none;
-  border-radius: 18px;
+  border-radius: 50%;
   font-size: 15px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
   height: 60px;
+  width: 60px;
   align-self: flex-end;
 }
 
