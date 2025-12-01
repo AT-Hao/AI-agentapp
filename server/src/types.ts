@@ -1,4 +1,4 @@
-// Basic message structure
+//  message
 export interface Message {
     id: string;
     content: string;
@@ -6,13 +6,13 @@ export interface Message {
     timestamp: Date;
   }
 
-  // Structure for a chat API request
+  // API request
   export interface ChatRequest {
     message: string;
     history: Message[];
   }
 
-  // Structure for a chat API response
+  // API response
   export interface ChatResponse {
     id: string;
     content: string;

@@ -93,14 +93,12 @@ app.post('/api/chat', async (req, res) => {
     await conversation.save();
 
     // 构造 LangGraph 的输入状态
-    // 我们从数据库中取出历史记录，转换为 LangChain 的 Message 对象
     const graphInputMessages = conversation.messages.map(m => {
       if (m.role === 'user') return new HumanMessage(m.content);
       return new AIMessage(m.content);
     });
 
     // 调用 LangGraph 智能体
-    // 这是为了确保逻辑完全由 Graph 接管。
     const result = await chatAgent.invoke({ messages: graphInputMessages });  //不能使用流式
 
     // 获取 AI 的回复

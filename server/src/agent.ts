@@ -8,10 +8,23 @@ import { Response } from 'express';
 // 调用外部 LLM API
 const sendLLMMessage = async (data: ChatRequest): Promise<ChatResponse> => {
   try {
+    // 创建system prompt消息
+    // const messages = [{
+    //   role: 'system',
+    //   content: 'You are a helpful assistant.',
+    // }];
+    // data.history.forEach(msg => {
+    //   messages.push({
+    //     role: msg.role === 'user' ? 'user' : 'assistant',
+    //     content: msg.content,
+    //   });
+    // });
+
     const messages = data.history.map(msg => ({
       role: msg.role === 'user' ? 'user' : 'assistant',
       content: msg.content,
     }));
+
     messages.push({
       role: 'user',
       content: data.message,
@@ -56,12 +69,12 @@ const sendLLMMessage = async (data: ChatRequest): Promise<ChatResponse> => {
 };
 
 
-// Define the state structure for the graph
+
 const StateAnnotation = Annotation.Root({
   ...MessagesAnnotation.spec
 });
 
-// Define the chat node
+
 const chatNode = async (state: typeof StateAnnotation.State) => {
   try {
     const history: Message[] = state.messages
@@ -95,7 +108,7 @@ const chatNode = async (state: typeof StateAnnotation.State) => {
   }
 };
 
-// Create and compile the graph
+
 const workflow = new StateGraph(StateAnnotation)
   .addNode("chatbot", chatNode)
   .addEdge("__start__", "chatbot")

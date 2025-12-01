@@ -78,7 +78,7 @@ export const useChat = () => {
       timestamp: new Date(),
     };
 
-    // AI 占位符
+
     const aiMessageId = (Date.now() + 1).toString();
     const aiMessagePlaceholder: Message = {
       id: aiMessageId,
