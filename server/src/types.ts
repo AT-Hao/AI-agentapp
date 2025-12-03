@@ -10,6 +10,7 @@ export interface Message {
   export interface ChatRequest {
     message: string;
     history: Message[];
+    previous_response_id?: string;
   }
 
   // API response

@@ -8,17 +8,6 @@ import { Response } from 'express';
 // 调用外部 LLM API
 const sendLLMMessage = async (data: ChatRequest): Promise<ChatResponse> => {
   try {
-    // 创建system prompt消息
-    // const messages = [{
-    //   role: 'system',
-    //   content: 'You are a helpful assistant.',
-    // }];
-    // data.history.forEach(msg => {
-    //   messages.push({
-    //     role: msg.role === 'user' ? 'user' : 'assistant',
-    //     content: msg.content,
-    //   });
-    // });
 
     const messages = data.history.map(msg => ({
       role: msg.role === 'user' ? 'user' : 'assistant',
@@ -114,7 +103,7 @@ const workflow = new StateGraph(StateAnnotation)
   .addEdge("__start__", "chatbot")
   .addEdge("chatbot", "__end__");
 
-export const streamLLMMessage = async (messages: Message[], res: Response) => {
+export const streamLLMMessage = async (messages: Message[], res: Response): Promise<string> => {
   try {
     const formattedMessages = messages.map(msg => ({
       role: msg.role === 'user' ? 'user' : 'assistant',
@@ -124,7 +113,13 @@ export const streamLLMMessage = async (messages: Message[], res: Response) => {
     const requestBody = {
       model: chatAgentConfig.model,
       messages: formattedMessages,
-      stream: true, // Enable streaming
+      stream: true, // 启用流式输出
+      stream_options: {
+        include_usage: true
+      },
+      thinking:{
+        type:"disabled"
+      }
     };
 
     const llmResponse = await fetch(chatAgentConfig.LLM_API_ENDPOINT, {
@@ -151,6 +146,8 @@ export const streamLLMMessage = async (messages: Message[], res: Response) => {
     const decoder = new TextDecoder('utf-8');
 
     let buffer = '';
+    let fullContent = ''; // 用于收集完整回复
+
     while (true) {
       const { done, value } = await reader.read();
       if (done) {
@@ -159,18 +156,20 @@ export const streamLLMMessage = async (messages: Message[], res: Response) => {
 
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split('\n');
-      buffer = lines.pop() || ''; // Keep the last partial line in the buffer
+      buffer = lines.pop() || '';
 
       for (const line of lines) {
         if (line.startsWith('data: ')) {
           const jsonStr = line.substring(6).trim();
           if (jsonStr === '[DONE]') {
-            return;
+            continue;
           }
           try {
             const parsed = JSON.parse(jsonStr);
             const chunk = parsed.choices?.[0]?.delta?.content;
             if (chunk) {
+              fullContent += chunk; // 拼接内容
+              // 实时发送给前端
               res.write(`data: ${JSON.stringify({ content: chunk })}\n\n`);
             }
           } catch (e) {
@@ -179,9 +178,10 @@ export const streamLLMMessage = async (messages: Message[], res: Response) => {
         }
       }
     }
+    return fullContent; // 返回完整内容供保存
   } catch (error) {
     console.error('Failed to stream LLM message:', error);
-    throw error; // Rethrow to be caught by the calling endpoint
+    throw error;
   }
 };
 

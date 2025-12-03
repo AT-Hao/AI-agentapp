@@ -11,6 +11,7 @@ export interface IMessage {
 // 会话接口
 export interface IConversation extends Document {
   title: string;
+  contextId?: string;
   messages: IMessage[];
   createdAt: Date;
   updatedAt: Date;
@@ -28,6 +29,7 @@ const MessageSchema = new Schema({
 const ConversationSchema = new Schema({
   title: { type: String, default: '新会话' },
   messages: [MessageSchema],
+  contextId: { type: String },
 }, {
   timestamps: true
 });

@@ -3,7 +3,7 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
 import { HumanMessage, AIMessage } from '@langchain/core/messages';
-import { chatAgent } from './agent';
+import { chatAgent, streamLLMMessage } from './agent';
 import { ConversationModel } from './models';
 
 
@@ -64,7 +64,7 @@ app.post('/api/chat', async (req, res) => {
     return res.status(400).json({ error: 'Missing conversationId or message' });
   }
 
-  // 设置 SSE 响应头，以便兼容前端的流式读取逻辑
+  // 设置 SSE 响应头
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
@@ -92,18 +92,11 @@ app.post('/api/chat', async (req, res) => {
     }
     await conversation.save();
 
-    // 构造 LangGraph 的输入状态
-    const graphInputMessages = conversation.messages.map(m => {
-      if (m.role === 'user') return new HumanMessage(m.content);
-      return new AIMessage(m.content);
-    });
+    // --- 修改部分开始 ---
 
-    // 调用 LangGraph 智能体
-    const result = await chatAgent.invoke({ messages: graphInputMessages });  //不能使用流式
-
-    // 获取 AI 的回复
-    const lastMessage = result.messages[result.messages.length - 1];
-    const aiContent = lastMessage.content as string;
+    // 调用流式接口，直接传入 res 进行流式输出，并等待返回完整内容
+    // 注意：这里不再使用 chatAgent.invoke，因为我们需要直接控制流
+    const aiContent = await streamLLMMessage(conversation.messages, res);
 
     // 保存 AI 回复到 DB
     const aiMsg = {
@@ -112,16 +105,21 @@ app.post('/api/chat', async (req, res) => {
       content: aiContent,
       timestamp: new Date()
     };
-    conversation.messages.push(aiMsg as any);
-    await conversation.save();
+    // 重新获取会话以避免版本冲突（可选，但推荐）
+    const updatedConversation = await ConversationModel.findById(conversationId);
+    if (updatedConversation) {
+        updatedConversation.messages.push(aiMsg as any);
+        await updatedConversation.save();
+    }
 
-    // 发送响应给前端
-    // 为了兼容前端的 onChunk 逻辑，我们将完整内容作为一个 chunk 发送
-    res.write(`data: ${JSON.stringify({ content: aiContent })}\n\n`);
+    // --- 修改部分结束 ---
 
   } catch (error) {
     console.error('Chat error:', error);
-    res.write(`data: {"error": "Error processing request"}\n\n`);
+    // 如果流尚未结束，发送错误信息
+    if (!res.writableEnded) {
+        res.write(`data: ${JSON.stringify({ error: "Error processing request" })}\n\n`);
+    }
   } finally {
     res.end();
   }
