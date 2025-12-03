@@ -1,6 +1,4 @@
-import { Conversation } from '../types/chat';
-
-
+import type { Conversation } from '../types/chat';
 
 const BACKEND_API_BASE = 'http://localhost:3001/api';
 
@@ -16,27 +14,31 @@ export const fetchConversations = async (): Promise<Conversation[]> => {
     updatedAt: new Date(c.updatedAt),
     messages: c.messages.map((m: any) => ({
       ...m,
-      timestamp: new Date(m.timestamp)
-    }))
+      timestamp: new Date(m.timestamp),
+    })),
   }));
 };
 
 // 创建会话
 export const createConversationApi = async (): Promise<Conversation> => {
-  const res = await fetch(`${BACKEND_API_BASE}/conversations`, { method: 'POST' });
+  const res = await fetch(`${BACKEND_API_BASE}/conversations`, {
+    method: 'POST',
+  });
   if (!res.ok) throw new Error('Failed to create conversation');
   const c = await res.json();
   return {
     ...c,
     createdAt: new Date(c.createdAt),
     updatedAt: new Date(c.updatedAt),
-    messages: []
+    messages: [],
   };
 };
 
 // 删除会话
 export const deleteConversationApi = async (id: string): Promise<void> => {
-  const res = await fetch(`${BACKEND_API_BASE}/conversations/${id}`, { method: 'DELETE' });
+  const res = await fetch(`${BACKEND_API_BASE}/conversations/${id}`, {
+    method: 'DELETE',
+  });
   if (!res.ok) throw new Error('Failed to delete conversation');
 };
 
@@ -58,7 +60,9 @@ export const sendChatMessage = async (
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'API request failed' }));
+      const errorData = await response
+        .json()
+        .catch(() => ({ error: 'API request failed' }));
       throw new Error(errorData.error || 'API request failed');
     }
 

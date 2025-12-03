@@ -1,7 +1,7 @@
-import React from 'react';
-import styles from './index.module.css';
+import type React from 'react';
+import type { Conversation } from '../../types/chat';
 import NewChatButton from '../NewChatButton';
-import { Conversation } from '../../types/chat';
+import styles from './index.module.css';
 
 interface SidebarProps {
   conversations: Conversation[];
@@ -31,7 +31,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   if (isMobile && !isOpen) return null;
 
   return (
-    <div className={`${styles.sidebar} ${isMobile ? styles.mobile : ''} ${isOpen ? styles.open : ''}`}>
+    <div
+      className={`${styles.sidebar} ${isMobile ? styles.mobile : ''} ${isOpen ? styles.open : ''}`}
+    >
       {isMobile && (
         <div className={styles.mobileHeader}>
           <h2 className={styles.mobileTitle}>会话列表</h2>
@@ -67,7 +69,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 </div>
                 <button
                   className={styles.deleteButton}
-                  onClick={(e) => {
+                  onClick={e => {
                     e.stopPropagation();
                     onDeleteConversation(conv.id);
                   }}

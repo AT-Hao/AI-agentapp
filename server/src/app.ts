@@ -1,17 +1,17 @@
-import express from 'express';
-import cors from 'cors';
+import { AIMessage, HumanMessage } from '@langchain/core/messages';
 import bodyParser from 'body-parser';
+import cors from 'cors';
+import express from 'express';
 import mongoose from 'mongoose';
-import { HumanMessage, AIMessage } from '@langchain/core/messages';
 import { chatAgent, streamLLMMessage } from './agent';
 import { ConversationModel } from './models';
-
 
 const app = express();
 const port = 3001;
 
 // 连接本地 MongoDB
-mongoose.connect('mongodb://127.0.0.1:27017/ai-agent-app')
+mongoose
+  .connect('mongodb://127.0.0.1:27017/ai-agent-app')
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
 
@@ -21,10 +21,12 @@ app.use(bodyParser.json());
 // 获取所有会话
 app.get('/api/conversations', async (req, res) => {
   try {
-    const conversations = await ConversationModel.find().sort({ updatedAt: -1 });
+    const conversations = await ConversationModel.find().sort({
+      updatedAt: -1,
+    });
     const formatted = conversations.map(c => ({
       ...c.toObject(),
-      id: c._id.toString()
+      id: c._id.toString(),
     }));
     res.json(formatted);
   } catch (error) {
@@ -37,7 +39,7 @@ app.post('/api/conversations', async (req, res) => {
   try {
     const newConv = new ConversationModel({
       title: '新会话',
-      messages: []
+      messages: [],
     });
     await newConv.save();
     res.json({ ...newConv.toObject(), id: newConv._id.toString() });
@@ -82,13 +84,14 @@ app.post('/api/chat', async (req, res) => {
       id: Date.now().toString(),
       role: 'user',
       content: message,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
     conversation.messages.push(userMsg as any);
 
     // 更新标题
     if (conversation.messages.length === 1) {
-      conversation.title = message.length > 20 ? message.slice(0, 20) + '...' : message;
+      conversation.title =
+        message.length > 20 ? `${message.slice(0, 20)}...` : message;
     }
     await conversation.save();
 
@@ -103,22 +106,24 @@ app.post('/api/chat', async (req, res) => {
       id: Date.now().toString(),
       role: 'assistant',
       content: aiContent,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
     // 重新获取会话以避免版本冲突（可选，但推荐）
-    const updatedConversation = await ConversationModel.findById(conversationId);
+    const updatedConversation =
+      await ConversationModel.findById(conversationId);
     if (updatedConversation) {
-        updatedConversation.messages.push(aiMsg as any);
-        await updatedConversation.save();
+      updatedConversation.messages.push(aiMsg as any);
+      await updatedConversation.save();
     }
 
     // --- 修改部分结束 ---
-
   } catch (error) {
     console.error('Chat error:', error);
     // 如果流尚未结束，发送错误信息
     if (!res.writableEnded) {
-        res.write(`data: ${JSON.stringify({ error: "Error processing request" })}\n\n`);
+      res.write(
+        `data: ${JSON.stringify({ error: 'Error processing request' })}\n\n`,
+      );
     }
   } finally {
     res.end();

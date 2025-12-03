@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, type Document } from 'mongoose';
 
 // 消息接口
 export interface IMessage {
@@ -22,16 +22,22 @@ const MessageSchema = new Schema({
   id: { type: String, required: true },
   role: { type: String, required: true, enum: ['user', 'assistant'] },
   content: { type: String, required: true },
-  timestamp: { type: Date, default: Date.now }
+  timestamp: { type: Date, default: Date.now },
 });
 
 // 会话 Schema
-const ConversationSchema = new Schema({
-  title: { type: String, default: '新会话' },
-  messages: [MessageSchema],
-  contextId: { type: String },
-}, {
-  timestamps: true
-});
+const ConversationSchema = new Schema(
+  {
+    title: { type: String, default: '新会话' },
+    messages: [MessageSchema],
+    contextId: { type: String },
+  },
+  {
+    timestamps: true,
+  },
+);
 
-export const ConversationModel = mongoose.model<IConversation>('Conversation', ConversationSchema);
+export const ConversationModel = mongoose.model<IConversation>(
+  'Conversation',
+  ConversationSchema,
+);

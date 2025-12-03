@@ -1,15 +1,17 @@
-import { useState, useCallback, useEffect } from 'react';
-import { Message, Conversation } from '../types/chat';
+import { useCallback, useEffect, useState } from 'react';
 import {
-  sendChatMessage,
-  fetchConversations,
   createConversationApi,
-  deleteConversationApi
+  deleteConversationApi,
+  fetchConversations,
+  sendChatMessage,
 } from '../api/chat';
+import type { Conversation, Message } from '../types/chat';
 
 export const useChat = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [activeConversationId, setActiveConversationId] = useState<
+    string | null
+  >(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,14 +28,14 @@ export const useChat = () => {
           await handleCreateNewChat();
         }
       } catch (e) {
-        console.error("Failed to load history", e);
+        console.error('Failed to load history', e);
       }
     };
     loadData();
   }, []);
 
   const activeConversation = conversations.find(
-    conv => conv.id === activeConversationId
+    conv => conv.id === activeConversationId,
   );
 
   const handleCreateNewChat = useCallback(async () => {
@@ -44,92 +46,98 @@ export const useChat = () => {
       setError(null);
     } catch (e) {
       console.error(e);
-      setError("创建会话失败");
+      setError('创建会话失败');
     }
   }, []);
 
-  const handleDeleteConversation = useCallback(async (id: string) => {
-    try {
-      await deleteConversationApi(id);
-      setConversations(prev => {
-        const updated = prev.filter(c => c.id !== id);
-        if (id === activeConversationId) {
-          setActiveConversationId(updated.length > 0 ? updated[0].id : null);
-        }
-        if (updated.length === 0) {
-           // 可以在这里触发创建，或者留空
-           handleCreateNewChat();
-        }
-        return updated;
-      });
-    } catch (e) {
-      setError("删除失败");
-    }
-  }, [activeConversationId, handleCreateNewChat]);
-
-  const sendMessage = useCallback(async (content: string) => {
-    if (!content.trim() || !activeConversationId || isLoading) return;
-
-    // 乐观 UI 更新
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content,
-      role: 'user',
-      timestamp: new Date(),
-    };
-
-
-    const aiMessageId = (Date.now() + 1).toString();
-    const aiMessagePlaceholder: Message = {
-      id: aiMessageId,
-      content: '',
-      role: 'assistant',
-      timestamp: new Date(),
-    };
-
-    setConversations(prev => prev.map(conv => {
-      if (conv.id === activeConversationId) {
-        return {
-          ...conv,
-          title: conv.messages.length === 0 ? content.slice(0, 20) : conv.title,
-          messages: [...conv.messages, userMessage, aiMessagePlaceholder],
-          updatedAt: new Date()
-        };
+  const handleDeleteConversation = useCallback(
+    async (id: string) => {
+      try {
+        await deleteConversationApi(id);
+        setConversations(prev => {
+          const updated = prev.filter(c => c.id !== id);
+          if (id === activeConversationId) {
+            setActiveConversationId(updated.length > 0 ? updated[0].id : null);
+          }
+          if (updated.length === 0) {
+            // 可以在这里触发创建，或者留空
+            handleCreateNewChat();
+          }
+          return updated;
+        });
+      } catch (e) {
+        setError('删除失败');
       }
-      return conv;
-    }));
+    },
+    [activeConversationId, handleCreateNewChat],
+  );
 
-    setIsLoading(true);
-    setError(null);
+  const sendMessage = useCallback(
+    async (content: string) => {
+      if (!content.trim() || !activeConversationId || isLoading) return;
 
-    try {
-      await sendChatMessage(
-        activeConversationId,
+      // 乐观 UI 更新
+      const userMessage: Message = {
+        id: Date.now().toString(),
         content,
-        (chunk) => {
-          setConversations(prev => prev.map(conv => {
-            if (conv.id === activeConversationId) {
-              return {
-                ...conv,
-                messages: conv.messages.map(msg => {
-                  if (msg.id === aiMessageId) {
-                    return { ...msg, content: msg.content + chunk };
-                  }
-                  return msg;
-                })
-              };
-            }
-            return conv;
-          }));
-        }
+        role: 'user',
+        timestamp: new Date(),
+      };
+
+      const aiMessageId = (Date.now() + 1).toString();
+      const aiMessagePlaceholder: Message = {
+        id: aiMessageId,
+        content: '',
+        role: 'assistant',
+        timestamp: new Date(),
+      };
+
+      setConversations(prev =>
+        prev.map(conv => {
+          if (conv.id === activeConversationId) {
+            return {
+              ...conv,
+              title:
+                conv.messages.length === 0 ? content.slice(0, 20) : conv.title,
+              messages: [...conv.messages, userMessage, aiMessagePlaceholder],
+              updatedAt: new Date(),
+            };
+          }
+          return conv;
+        }),
       );
-    } catch (err: any) {
-      setError(err.message || '发送失败');
-      // 错误回滚（略）
-    } finally {
-      setIsLoading(false);
-    }
-  }, [activeConversationId, isLoading]);
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        await sendChatMessage(activeConversationId, content, chunk => {
+          setConversations(prev =>
+            prev.map(conv => {
+              if (conv.id === activeConversationId) {
+                return {
+                  ...conv,
+                  messages: conv.messages.map(msg => {
+                    if (msg.id === aiMessageId) {
+                      return { ...msg, content: msg.content + chunk };
+                    }
+                    return msg;
+                  }),
+                };
+              }
+              return conv;
+            }),
+          );
+        });
+      } catch (err: any) {
+        setError(err.message || '发送失败');
+        // 错误回滚（略）
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [activeConversationId, isLoading],
+  );
 
   return {
     conversations,

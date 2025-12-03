@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import type React from 'react';
+import { useEffect, useRef, useState } from 'react';
 import styles from './index.module.css';
 
 interface InputAreaProps {
@@ -16,7 +17,7 @@ const InputArea: React.FC<InputAreaProps> = ({ onSend, isLoading }) => {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${Math.min(
         textareaRef.current.scrollHeight,
-        150
+        150,
       )}px`;
     }
   }, [content]);
@@ -41,7 +42,7 @@ const InputArea: React.FC<InputAreaProps> = ({ onSend, isLoading }) => {
       <textarea
         ref={textareaRef}
         value={content}
-        onChange={(e) => setContent(e.target.value)}
+        onChange={e => setContent(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="在这里输入消息... "
         disabled={isLoading}

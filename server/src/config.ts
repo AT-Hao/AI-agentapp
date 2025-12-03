@@ -1,4 +1,4 @@
-import 'dotenv/config'
+import 'dotenv/config';
 
 interface ChatAgentConfig {
   LLM_API_ENDPOINT: string;

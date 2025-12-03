@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 import './App.css';
+import ChatWindow from './components/ChatWindow';
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
-import ChatWindow from './components/ChatWindow';
 import { useChat } from './hooks/useChat';
 import { useWindowSize } from './hooks/useWindowSize';
 
@@ -41,10 +42,7 @@ const App: React.FC = () => {
       />
 
       <div className="main-content">
-        <Topbar
-          isMobile={isMobile}
-          onToggleSidebar={toggleSidebar}
-        />
+        <Topbar isMobile={isMobile} onToggleSidebar={toggleSidebar} />
 
         <div className="chat-container">
           {activeConversation ? (
@@ -57,7 +55,7 @@ const App: React.FC = () => {
             />
           ) : (
             <div className="loading-state">
-              <div className="spinner"></div>
+              <div className="spinner" />
               <p>加载中...</p>
             </div>
           )}

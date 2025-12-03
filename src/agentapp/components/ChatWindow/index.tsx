@@ -1,8 +1,9 @@
-import React, { useRef, useEffect } from 'react';
-import styles from './index.module.css';
+import type React from 'react';
+import { useEffect, useRef } from 'react';
+import type { Message } from '../../types/chat';
 import ChatMessage from '../ChatMessage';
 import InputArea from '../InputArea';
-import { Message } from '../../types/chat';
+import styles from './index.module.css';
 
 interface ChatWindowProps {
   messages: Message[];
@@ -36,19 +37,17 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           <div className={styles.emptyChat}>
             <div className={styles.emptyIcon}>💬</div>
             <h3 className={styles.emptyTitle}>开始聊天吧</h3>
-            <p className={styles.emptySubtitle}>
-              输入你的问题
-            </p>
+            <p className={styles.emptySubtitle}>输入你的问题</p>
           </div>
         ) : (
-          messages.map((message) => (
+          messages.map(message => (
             <ChatMessage key={message.id} message={message} />
           ))
         )}
         {error && <div className={styles.errorMessage}>{error}</div>}
         {isLoading && (
           <div className={styles.loadingMessage}>
-            <div className={styles.spinner}></div>
+            <div className={styles.spinner} />
             <span>请等待...</span>
           </div>
         )}
