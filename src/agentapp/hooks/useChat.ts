@@ -73,10 +73,9 @@ export const useChat = () => {
   );
 
   const sendMessage = useCallback(
-    async (content: string) => {
+    async (content: string, enableThinking:boolean) => {
       if (!content.trim() || !activeConversationId || isLoading) return;
 
-      // 乐观 UI 更新
       const userMessage: Message = {
         id: Date.now().toString(),
         content,
@@ -89,6 +88,7 @@ export const useChat = () => {
         id: aiMessageId,
         content: '',
         role: 'assistant',
+        reasoning_content:'',
         timestamp: new Date(),
       };
 
@@ -111,7 +111,7 @@ export const useChat = () => {
       setError(null);
 
       try {
-        await sendChatMessage(activeConversationId, content, chunk => {
+        await sendChatMessage(activeConversationId, content, enableThinking,(chunk,reasoningChunk) => {
           setConversations(prev =>
             prev.map(conv => {
               if (conv.id === activeConversationId) {
@@ -119,7 +119,10 @@ export const useChat = () => {
                   ...conv,
                   messages: conv.messages.map(msg => {
                     if (msg.id === aiMessageId) {
-                      return { ...msg, content: msg.content + chunk };
+                      return { ...msg,
+                        content: msg.content + (chunk||'') ,
+                        reasoning_content:(msg.reasoning_content||'')+(reasoningChunk||'')
+                      };
                     }
                     return msg;
                   }),

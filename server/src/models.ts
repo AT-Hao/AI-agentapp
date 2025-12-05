@@ -5,6 +5,7 @@ export interface IMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+  reasoning_content?: string;
   timestamp: Date;
 }
 
@@ -22,6 +23,7 @@ const MessageSchema = new Schema({
   id: { type: String, required: true },
   role: { type: String, required: true, enum: ['user', 'assistant'] },
   content: { type: String, required: true },
+  reasoning_content: {type: String},
   timestamp: { type: Date, default: Date.now },
 });
 

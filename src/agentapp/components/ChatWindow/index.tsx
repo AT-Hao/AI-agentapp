@@ -9,7 +9,7 @@ interface ChatWindowProps {
   messages: Message[];
   isLoading: boolean;
   error: string | null;
-  onSendMessage: (content: string) => void;
+  onSendMessage: (content: string,enableThinking:boolean) => void;
   conversationTitle?: string;
 }
 
@@ -37,7 +37,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           <div className={styles.emptyChat}>
             <div className={styles.emptyIcon}>💬</div>
             <h3 className={styles.emptyTitle}>开始聊天吧</h3>
-            <p className={styles.emptySubtitle}>输入你的问题</p>
+            <p className={styles.emptySubtitle}>请输入你的问题</p>
           </div>
         ) : (
           messages.map(message => (
@@ -58,7 +58,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           <InputArea onSend={onSendMessage} isLoading={isLoading} />
         </div>
         <div className={styles.footerHint}>
-          <span>对话模型v1</span>
+          <span>对话模型 v2</span>
         </div>
       </div>
     </div>

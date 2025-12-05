@@ -3,12 +3,13 @@ import { useEffect, useRef, useState } from 'react';
 import styles from './index.module.css';
 
 interface InputAreaProps {
-  onSend: (content: string) => void;
+  onSend: (content: string, enableThinking: boolean) => void;
   isLoading: boolean;
 }
 
 const InputArea: React.FC<InputAreaProps> = ({ onSend, isLoading }) => {
   const [content, setContent] = useState('');
+  const [isThinkingEnabled, setIsThinkingEnabled] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // 自动调整文本域高度
@@ -25,7 +26,7 @@ const InputArea: React.FC<InputAreaProps> = ({ onSend, isLoading }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (content.trim() && !isLoading) {
-      onSend(content);
+      onSend(content,isThinkingEnabled);
       setContent('');
     }
   };
@@ -39,22 +40,33 @@ const InputArea: React.FC<InputAreaProps> = ({ onSend, isLoading }) => {
 
   return (
     <form onSubmit={handleSubmit} className={styles.inputForm}>
-      <textarea
-        ref={textareaRef}
-        value={content}
-        onChange={e => setContent(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="在这里输入消息... "
-        disabled={isLoading}
-        className={styles.textarea}
-      />
-      <button
-        type="submit"
-        className={styles.sendButton}
-        disabled={!content.trim() || isLoading}
-      >
-        {isLoading ? '发送中...' : '发送'}
-      </button>
+
+      <div className={styles.inputWrapper}>
+        <textarea
+          ref={textareaRef}
+          value={content}
+          onChange={e => setContent(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="在这里输入消息... "
+          disabled={isLoading}
+          className={styles.textarea}
+        />
+        <div className={styles.sendIcon}>
+
+          <button type="button" className={`${isThinkingEnabled ? styles.thinkingButtonClicked : styles.thinkingButton}`} onClick={() => setIsThinkingEnabled(!isThinkingEnabled)}>
+            {isThinkingEnabled ? '关闭思考' : '开启思考'}
+          </button>
+          <button
+            type="submit"
+            className={styles.sendButton}
+            disabled={!content.trim() || isLoading}
+          >
+            {isLoading ? '发送中...' : '发送'}
+          </button>
+        </div>
+
+      </div>
+
     </form>
   );
 };

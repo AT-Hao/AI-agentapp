@@ -46,7 +46,8 @@ export const deleteConversationApi = async (id: string): Promise<void> => {
 export const sendChatMessage = async (
   conversationId: string, // 新增参数
   message: string,
-  onChunk: (chunk: string) => void,
+  enableThinking:boolean,
+  onChunk: (chunk: string, reasoningChunk?:string) => void,
 ): Promise<void> => {
   try {
     const response = await fetch(`${BACKEND_API_BASE}/chat`, {
@@ -56,7 +57,7 @@ export const sendChatMessage = async (
         Accept: 'text/event-stream',
       },
       // 只需传 ID 和 Message，History 由后端从 DB 获取
-      body: JSON.stringify({ conversationId, message }),
+      body: JSON.stringify({ conversationId, message,enableThinking }),
     });
 
     if (!response.ok) {
@@ -87,7 +88,7 @@ export const sendChatMessage = async (
           try {
             const parsed = JSON.parse(jsonStr);
             if (parsed.error) throw new Error(parsed.error);
-            if (parsed.content) onChunk(parsed.content);
+            if (parsed.content || parsed.reasoning_content) onChunk(parsed.content||'', parsed.reasoning_content||'');
           } catch (e) {
             console.error('Parse error:', e);
           }

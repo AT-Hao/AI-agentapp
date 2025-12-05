@@ -60,7 +60,7 @@ app.delete('/api/conversations/:id', async (req, res) => {
 
 // 聊天接口
 app.post('/api/chat', async (req, res) => {
-  const { conversationId, message } = req.body;
+  const { conversationId, message, enableThinking } = req.body;
 
   if (!conversationId || !message) {
     return res.status(400).json({ error: 'Missing conversationId or message' });
@@ -95,17 +95,20 @@ app.post('/api/chat', async (req, res) => {
     }
     await conversation.save();
 
-    // --- 修改部分开始 ---
 
-    // 调用流式接口，直接传入 res 进行流式输出，并等待返回完整内容
-    // 注意：这里不再使用 chatAgent.invoke，因为我们需要直接控制流
-    const aiContent = await streamLLMMessage(conversation.messages, res);
+
+    const { content: aiContent, reasoning_content: aiReasoning } = await streamLLMMessage(
+      conversation.messages,
+      res,
+      enableThinking
+    );
 
     // 保存 AI 回复到 DB
     const aiMsg = {
       id: Date.now().toString(),
       role: 'assistant',
       content: aiContent,
+      reasoning_content: aiReasoning,
       timestamp: new Date(),
     };
     // 重新获取会话以避免版本冲突（可选，但推荐）

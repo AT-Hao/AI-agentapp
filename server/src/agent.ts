@@ -48,7 +48,10 @@ const sendLLMMessage = async (data: ChatRequest): Promise<ChatResponse> => {
       );
     }
 
+    // 获取结果
     const result = await response.json();
+
+
     const content =
       result.choices?.[0]?.message?.content ||
       'Sorry, I could not process your request.';
@@ -115,10 +118,13 @@ const workflow = new StateGraph(StateAnnotation)
   .addEdge('__start__', 'chatbot')
   .addEdge('chatbot', '__end__');
 
+
+// 流式接口
 export const streamLLMMessage = async (
   messages: Message[],
   res: Response,
-): Promise<string> => {
+  enableThinking: boolean = false
+): Promise<{ content: string; reasoning_content: string }> => {
   try {
     const formattedMessages = messages.map(msg => ({
       role: msg.role === 'user' ? 'user' : 'assistant',
@@ -133,7 +139,7 @@ export const streamLLMMessage = async (
         include_usage: true,
       },
       thinking: {
-        type: 'disabled',
+        type: enableThinking ? 'enabled' : 'disabled',
       },
     };
 
@@ -167,6 +173,7 @@ export const streamLLMMessage = async (
 
     let buffer = '';
     let fullContent = ''; // 用于收集完整回复
+    let fullReasoning = ''; // 用于收集完整推理
 
     while (true) {
       const { done, value } = await reader.read();
@@ -186,19 +193,34 @@ export const streamLLMMessage = async (
           }
           try {
             const parsed = JSON.parse(jsonStr);
-            const chunk = parsed.choices?.[0]?.delta?.content;
-            if (chunk) {
-              fullContent += chunk; // 拼接内容
-              // 实时发送给前端
-              res.write(`data: ${JSON.stringify({ content: chunk })}\n\n`);
+            const delta = parsed.choices?.[0]?.delta;
+            if(delta){
+              const contentChunk = delta.content||'';
+              const reasoningChunk = delta.reasoning_content||'';
+
+              if(contentChunk||reasoningChunk){
+                fullContent += contentChunk;
+                fullReasoning += reasoningChunk;
+                res.write(
+                  `data: ${JSON.stringify({
+                    content: contentChunk,
+                    reasoning_content: reasoningChunk,
+                  })}\n\n`,
+                );
+
+              }
+
+
+
             }
+
           } catch (e) {
             console.error('Failed to parse stream chunk:', jsonStr, e);
           }
         }
       }
     }
-    return fullContent; // 返回完整内容供保存
+    return {content: fullContent, reasoning_content: fullReasoning}; // 返回完整内容供保存
   } catch (error) {
     console.error('Failed to stream LLM message:', error);
     throw error;

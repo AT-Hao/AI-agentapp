@@ -1,12 +1,15 @@
-import type React from 'react';
-import type { Message } from '../../types/chat';
+import  React,{useState} from 'react';
+import  { Message } from '../../types/chat';
 import styles from './index.module.css';
+import ReactMarkdown from 'react-markdown';
 
 interface ChatMessageProps {
   message: Message;
 }
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
+  const [isThinkingExpanded, setIsThinkingExpanded] = useState(false);
+
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
@@ -27,7 +30,27 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
           </span>
           <span className={styles.time}>{formatTime(message.timestamp)}</span>
         </div>
-        <div className={styles.content}>{message.content}</div>
+        {message.reasoning_content && (
+          <div className={styles.reasoningContainer}>
+            <div className={styles.reasoningHeader}
+              onClick={() => setIsThinkingExpanded(!isThinkingExpanded)}>
+                <span className={styles.reasoningIcon}>💭</span>
+                <span className={styles.reasoningTitle}>深度思考过程</span>
+                <span className={styles.reasoningToggle}>
+                  {isThinkingExpanded?'收起':'展开'}
+                </span>
+            </div>
+            {isThinkingExpanded && (
+              <div className={styles.reasoningContent}>
+                {message.reasoning_content}
+              </div>
+            )}
+          </div>
+        )}
+
+
+
+        <div className={styles.content}><ReactMarkdown>{message.content}</ReactMarkdown></div>
       </div>
     </div>
   );
