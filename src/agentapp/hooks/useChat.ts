@@ -89,6 +89,7 @@ export const useChat = () => {
         content: '',
         role: 'assistant',
         reasoning_content:'',
+        search_results: '',
         timestamp: new Date(),
       };
 
@@ -111,7 +112,7 @@ export const useChat = () => {
       setError(null);
 
       try {
-        await sendChatMessage(activeConversationId, content, enableThinking,enableSearch,(chunk,reasoningChunk) => {
+        await sendChatMessage(activeConversationId, content, enableThinking,enableSearch,(chunk,reasoningChunk,searchResults) => {
           setConversations(prev =>
             prev.map(conv => {
               if (conv.id === activeConversationId) {
@@ -121,7 +122,8 @@ export const useChat = () => {
                     if (msg.id === aiMessageId) {
                       return { ...msg,
                         content: msg.content + (chunk||'') ,
-                        reasoning_content:(msg.reasoning_content||'')+(reasoningChunk||'')
+                        reasoning_content:(msg.reasoning_content||'')+(reasoningChunk||''),
+                        search_results:searchResults?searchResults:msg.search_results,
                       };
                     }
                     return msg;

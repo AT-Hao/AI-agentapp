@@ -97,7 +97,7 @@ app.post('/api/chat', async (req, res) => {
 
 
 
-    const { content: aiContent, reasoning_content: aiReasoning } = await streamLLMMessage(
+    const { content: aiContent, reasoning_content: aiReasoning ,search_results: aiSearchResultsStr} = await streamLLMMessage(
       conversation.messages,
       res,
       enableThinking,
@@ -110,6 +110,7 @@ app.post('/api/chat', async (req, res) => {
       role: 'assistant',
       content: aiContent,
       reasoning_content: aiReasoning,
+      search_results: aiSearchResultsStr,
       timestamp: new Date(),
     };
     const updatedConversation =
@@ -119,7 +120,7 @@ app.post('/api/chat', async (req, res) => {
       await updatedConversation.save();
     }
 
-    // --- 修改部分结束 ---
+
   } catch (error) {
     console.error('Chat error:', error);
     // 如果流尚未结束，发送错误信息

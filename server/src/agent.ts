@@ -125,21 +125,26 @@ export const streamLLMMessage = async (
   res: Response,
   enableThinking: boolean = false,
   enableSearch: boolean = false,
-): Promise<{ content: string; reasoning_content: string }> => {
+): Promise<{ content: string; reasoning_content: string ,search_results: string}> => {
   try {
-    // const formattedMessages = messages.map(msg => ({
-    //   role: msg.role === 'user' ? 'user' : 'assistant',
-    //   content: msg.content,
-    // }));
-    // 1. 处理搜索逻辑
     let searchContext = '';
+    let searchResultsStr = '';
     if (enableSearch) {
       const lastMessage = messages[messages.length - 1];
       if (lastMessage && lastMessage.role === 'user') {
         // 通知前端正在搜索（可选，通过 SSE 发送特殊事件，这里简化处理直接搜）
         const searchResults = await performSearch(lastMessage.content);
+        searchResultsStr = searchResults;
+
+        console.log('Search results:', searchResults);
+
         if (searchResults) {
-          searchContext = `\n\n【参考网络搜索结果】:\n${searchResults}\n\n请根据上述搜索结果和你的知识回答问题。`;
+          searchContext = `\n\n参考网络搜索结果:\n${searchResults}\n\n请根据上述搜索结果和你的知识回答问题。`;
+          res.write(
+            `data: ${JSON.stringify({
+              search_results: searchResultsStr,
+            })}\n\n`,
+          );
         }
       }
     }
@@ -230,14 +235,11 @@ export const streamLLMMessage = async (
                 res.write(
                   `data: ${JSON.stringify({
                     content: contentChunk,
-                    reasoning_content: reasoningChunk,
+                    reasoning_content: reasoningChunk
                   })}\n\n`,
                 );
 
               }
-
-
-
             }
 
           } catch (e) {
@@ -246,7 +248,7 @@ export const streamLLMMessage = async (
         }
       }
     }
-    return {content: fullContent, reasoning_content: fullReasoning}; // 返回完整内容供保存
+    return {content: fullContent, reasoning_content: fullReasoning, search_results: searchResultsStr}; // 返回完整内容供保存
   } catch (error) {
     console.error('Failed to stream LLM message:', error);
     throw error;

@@ -4,6 +4,7 @@ export interface Message {
   content: string;
   role: 'user' | 'assistant';
   reasoning_content?: string;
+  search_results?: string;
   timestamp: Date;
 }
 
@@ -21,4 +22,5 @@ export interface ChatResponse {
   id: string;
   content: string;
   reasoning_content?: string;
+  search_content?: string;
 }

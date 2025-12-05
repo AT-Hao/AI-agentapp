@@ -149,6 +149,79 @@
 }
 
 
+/* 搜索结果 */
+.searchContainer {
+  background-color: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 13px;
+  width:auto; /* 占满宽度或根据需要调整 */
+  margin-top: 8px; /* 放在内容下方 */
+}
+
+.searchHeader {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #e0f2fe;
+  cursor: pointer;
+  user-select: none;
+  color: #0369a1;
+  font-weight: 500;
+  min-width: 160px;
+}
+
+.searchHeader:hover {
+  background-color: #bae6fd;
+}
+
+.searchIcon {
+  margin-right: 6px;
+}
+
+.searchTitle {
+  flex: 1;
+}
+
+.searchToggle {
+  font-size: 12px;
+  color: #0284c7;
+}
+
+.searchContent {
+  padding: 12px;
+  color: #334155;
+  line-height: 1.5;
+  border-top: 1px solid #bae6fd;
+  background-color: #fff;
+  white-space: pre-wrap; /* 保持格式 */
+}
+
+.searchResultItem {
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed #e2e8f0;
+}
+
+.searchResultItem:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.searchResultLink {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.searchResultLink:hover {
+  text-decoration: underline;
+}
+
 /* 适配深色模式感知 */
 @media (prefers-color-scheme: dark) {
   .assistant .content {

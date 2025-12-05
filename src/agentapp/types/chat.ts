@@ -3,6 +3,7 @@ export interface Message {
   content: string;
   role: 'user' | 'assistant';
   reasoning_content?: string;
+  search_results?: string;
   timestamp: Date;
 }
 

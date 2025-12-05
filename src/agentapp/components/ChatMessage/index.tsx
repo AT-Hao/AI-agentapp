@@ -9,6 +9,34 @@ interface ChatMessageProps {
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   const [isThinkingExpanded, setIsThinkingExpanded] = useState(false);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+
+  const renderSearchResults = (jsonString: string) => {
+    try {
+      // Tavily 的结果通常包含 results 数组
+      const data = JSON.parse(jsonString);
+      const results = data.results || [];
+
+      if (!Array.isArray(results) || results.length === 0) {
+        return <div>{jsonString}</div>; // 回退显示原始文本
+      }
+
+      return (
+        <div>
+          {results.map((result: any, index: number) => (
+            <div key={index} className={styles.searchResultItem}>
+              <a href={result.url} target="_blank" rel="noopener noreferrer" className={styles.searchResultLink}>
+                {index + 1}. {result.title}
+              </a>
+              <div>{result.content}</div>
+            </div>
+          ))}
+        </div>
+      );
+    } catch (e) {
+      return <div>{jsonString}</div>;
+    }
+  };
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -48,9 +76,30 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
           </div>
         )}
 
+        <div className={styles.content}>
+          <ReactMarkdown>{message.content}</ReactMarkdown>
+        </div>
 
+        {message.search_results && (
+          <div className={styles.searchContainer}>
+            <div
+              className={styles.searchHeader}
+              onClick={() => setIsSearchExpanded(!isSearchExpanded)}
+            >
+              <span className={styles.searchIcon}>🌏</span>
+              <span className={styles.searchTitle}>搜索结果</span>
+              <span className={styles.searchToggle}>
+                {isSearchExpanded ? '收起' : '展开'}
+              </span>
+            </div>
+            {isSearchExpanded && (
+              <div className={styles.searchContent}>
+                {renderSearchResults(message.search_results)}
+              </div>
+            )}
+          </div>
+        )}
 
-        <div className={styles.content}><ReactMarkdown>{message.content}</ReactMarkdown></div>
       </div>
     </div>
   );

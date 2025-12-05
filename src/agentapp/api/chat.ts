@@ -48,7 +48,7 @@ export const sendChatMessage = async (
   message: string,
   enableThinking:boolean,
   enableSearch:boolean,
-  onChunk: (chunk: string, reasoningChunk?:string) => void,
+  onChunk: (chunk: string, reasoningChunk?:string, searchResults?:string) => void,
 ): Promise<void> => {
   try {
     const response = await fetch(`${BACKEND_API_BASE}/chat`, {
@@ -89,7 +89,12 @@ export const sendChatMessage = async (
           try {
             const parsed = JSON.parse(jsonStr);
             if (parsed.error) throw new Error(parsed.error);
-            if (parsed.content || parsed.reasoning_content) onChunk(parsed.content||'', parsed.reasoning_content||'');
+            if (parsed.content || parsed.reasoning_content||parsed.search_results)
+              onChunk(
+                parsed.content||'',
+                parsed.reasoning_content||'',
+                parsed.search_results||''
+              );
           } catch (e) {
             console.error('Parse error:', e);
           }
