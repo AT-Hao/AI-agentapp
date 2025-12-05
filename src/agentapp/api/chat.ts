@@ -47,6 +47,7 @@ export const sendChatMessage = async (
   conversationId: string, // 新增参数
   message: string,
   enableThinking:boolean,
+  enableSearch:boolean,
   onChunk: (chunk: string, reasoningChunk?:string) => void,
 ): Promise<void> => {
   try {
@@ -57,7 +58,7 @@ export const sendChatMessage = async (
         Accept: 'text/event-stream',
       },
       // 只需传 ID 和 Message，History 由后端从 DB 获取
-      body: JSON.stringify({ conversationId, message,enableThinking }),
+      body: JSON.stringify({ conversationId, message,enableThinking,enableSearch }),
     });
 
     if (!response.ok) {

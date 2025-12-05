@@ -13,7 +13,7 @@
 .thinkingButton {
   background-color: #f3f4f6;
   border: 1px solid #e5e7eb;
-  border-radius: 50%;
+  border-radius: 20px;
   padding: 4px 12px;
   font-size: 12px;
   color: #5a606f;
@@ -22,13 +22,13 @@
   display: flex;
   align-items: center;
   height: 60px;
-  width: 60px;
+  width: 96px;
   gap: 4px;
 }
 .thinkingButtonClicked{
   background-color: #e3ebfc;
   border: 2px solid #e5e7eb;
-  border-radius: 50%;
+  border-radius: 20px;
   padding: 4px 12px;
   font-size: 12px;
   color:#637fef;
@@ -39,7 +39,7 @@
   display: flex;
   align-items: center;
   height: 60px;
-  width: 60px;
+  width: 96px;
   gap: 4px;
 }
 .thinkingButton:hover {
@@ -79,6 +79,38 @@
   opacity: 0.7;
 }
 
+.toggleButton {
+  background-color: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 0;
+  color: #5a606f;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60px;
+  width: 96px;
+}
+
+.toggleButtonClicked {
+  background-color: #e3ebfc;
+  border: 2px solid #b0bffe;
+  color: #4066ff;
+  border-radius: 20px;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60px;
+  width: 96px;
+}
+
+
+
 .sendButton {
   background-color: #4066ff;
   color: #fff;
@@ -89,8 +121,8 @@
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
-  height: 60px;
-  width: 60px;
+  height: 50px;
+  width: 50px;
   /* align-self: flex-end; */
 }
 

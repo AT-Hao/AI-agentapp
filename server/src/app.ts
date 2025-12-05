@@ -60,7 +60,7 @@ app.delete('/api/conversations/:id', async (req, res) => {
 
 // 聊天接口
 app.post('/api/chat', async (req, res) => {
-  const { conversationId, message, enableThinking } = req.body;
+  const { conversationId, message, enableThinking,enableSearch } = req.body;
 
   if (!conversationId || !message) {
     return res.status(400).json({ error: 'Missing conversationId or message' });
@@ -100,7 +100,8 @@ app.post('/api/chat', async (req, res) => {
     const { content: aiContent, reasoning_content: aiReasoning } = await streamLLMMessage(
       conversation.messages,
       res,
-      enableThinking
+      enableThinking,
+      enableSearch
     );
 
     // 保存 AI 回复到 DB
@@ -111,7 +112,6 @@ app.post('/api/chat', async (req, res) => {
       reasoning_content: aiReasoning,
       timestamp: new Date(),
     };
-    // 重新获取会话以避免版本冲突（可选，但推荐）
     const updatedConversation =
       await ConversationModel.findById(conversationId);
     if (updatedConversation) {

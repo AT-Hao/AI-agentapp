@@ -73,7 +73,7 @@ export const useChat = () => {
   );
 
   const sendMessage = useCallback(
-    async (content: string, enableThinking:boolean) => {
+    async (content: string, enableThinking:boolean,enableSearch:boolean) => {
       if (!content.trim() || !activeConversationId || isLoading) return;
 
       const userMessage: Message = {
@@ -111,7 +111,7 @@ export const useChat = () => {
       setError(null);
 
       try {
-        await sendChatMessage(activeConversationId, content, enableThinking,(chunk,reasoningChunk) => {
+        await sendChatMessage(activeConversationId, content, enableThinking,enableSearch,(chunk,reasoningChunk) => {
           setConversations(prev =>
             prev.map(conv => {
               if (conv.id === activeConversationId) {

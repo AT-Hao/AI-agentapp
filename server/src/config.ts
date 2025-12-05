@@ -5,6 +5,7 @@ interface ChatAgentConfig {
   API_KEY: string;
   model: string;
   temperature: number;
+  TAVILY_API_KEY: string;
 }
 
 // 后续放入环境变量中
@@ -13,4 +14,5 @@ export const chatAgentConfig: ChatAgentConfig = {
   API_KEY: process.env.API_KEY || '',
   model: process.env.MODEL || '',
   temperature: 0.9,
+  TAVILY_API_KEY: process.env.TAVILY_API_KEY || '',
 };

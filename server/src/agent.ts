@@ -5,10 +5,10 @@ import {
   StateGraph,
 } from '@langchain/langgraph';
 import { chatAgentConfig } from './config';
+import { TavilySearch } from "@langchain/tavily";
 import type { ChatRequest, ChatResponse, Message } from './types';
 
 import type { Response } from 'express';
-
 // 调用外部 LLM API
 const sendLLMMessage = async (data: ChatRequest): Promise<ChatResponse> => {
   try {
@@ -123,13 +123,39 @@ const workflow = new StateGraph(StateAnnotation)
 export const streamLLMMessage = async (
   messages: Message[],
   res: Response,
-  enableThinking: boolean = false
+  enableThinking: boolean = false,
+  enableSearch: boolean = false,
 ): Promise<{ content: string; reasoning_content: string }> => {
   try {
-    const formattedMessages = messages.map(msg => ({
-      role: msg.role === 'user' ? 'user' : 'assistant',
-      content: msg.content,
-    }));
+    // const formattedMessages = messages.map(msg => ({
+    //   role: msg.role === 'user' ? 'user' : 'assistant',
+    //   content: msg.content,
+    // }));
+    // 1. 处理搜索逻辑
+    let searchContext = '';
+    if (enableSearch) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage && lastMessage.role === 'user') {
+        // 通知前端正在搜索（可选，通过 SSE 发送特殊事件，这里简化处理直接搜）
+        const searchResults = await performSearch(lastMessage.content);
+        if (searchResults) {
+          searchContext = `\n\n【参考网络搜索结果】:\n${searchResults}\n\n请根据上述搜索结果和你的知识回答问题。`;
+        }
+      }
+    }
+
+    const formattedMessages = messages.map((msg, index) => {
+      // 如果是最后一条消息且有搜索结果，注入上下文
+      let content = msg.content;
+      if (enableSearch && index === messages.length - 1 && msg.role === 'user') {
+        content += searchContext;
+      }
+
+      return {
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: content,
+      };
+    });
 
     const requestBody = {
       model: chatAgentConfig.model,
@@ -226,5 +252,24 @@ export const streamLLMMessage = async (
     throw error;
   }
 };
+
+const performSearch = async (query: string): Promise<string> => {
+  try {
+    const tool = new TavilySearch({
+      tavilyApiKey: chatAgentConfig.TAVILY_API_KEY,
+      maxResults: 3,
+    });
+
+    // 注意：TavilySearch 通常接收一个对象参数 { query: string }
+    const result = await tool.invoke({ query });
+
+    return JSON.stringify(result);
+  } catch (e) {
+    console.error('Search failed:', e);
+    return '';
+  }
+};
+
+
 
 export const chatAgent = workflow.compile();

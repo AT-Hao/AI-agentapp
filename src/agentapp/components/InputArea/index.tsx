@@ -3,13 +3,14 @@ import { useEffect, useRef, useState } from 'react';
 import styles from './index.module.css';
 
 interface InputAreaProps {
-  onSend: (content: string, enableThinking: boolean) => void;
+  onSend: (content: string, enableThinking: boolean,enableSearch:boolean) => void;
   isLoading: boolean;
 }
 
 const InputArea: React.FC<InputAreaProps> = ({ onSend, isLoading }) => {
   const [content, setContent] = useState('');
   const [isThinkingEnabled, setIsThinkingEnabled] = useState(false);
+  const [isSearchEnabled, setIsSearchEnabled] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // 自动调整文本域高度
@@ -26,7 +27,7 @@ const InputArea: React.FC<InputAreaProps> = ({ onSend, isLoading }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (content.trim() && !isLoading) {
-      onSend(content,isThinkingEnabled);
+      onSend(content,isThinkingEnabled,isSearchEnabled);
       setContent('');
     }
   };
@@ -54,14 +55,21 @@ const InputArea: React.FC<InputAreaProps> = ({ onSend, isLoading }) => {
         <div className={styles.sendIcon}>
 
           <button type="button" className={`${isThinkingEnabled ? styles.thinkingButtonClicked : styles.thinkingButton}`} onClick={() => setIsThinkingEnabled(!isThinkingEnabled)}>
-            {isThinkingEnabled ? '关闭思考' : '开启思考'}
+            {isThinkingEnabled ? '关闭思考 🧠' : '开启思考 🧠'}
+          </button>
+          <button
+            type="button"
+            className={isSearchEnabled ? styles.toggleButtonClicked : styles.toggleButton}
+            onClick={() => setIsSearchEnabled(!isSearchEnabled)}
+          >
+            {isSearchEnabled ? '关闭联网 🌏' : '开启联网 🌏'}
           </button>
           <button
             type="submit"
             className={styles.sendButton}
             disabled={!content.trim() || isLoading}
           >
-            {isLoading ? '发送中...' : '发送'}
+            {'⮝'}
           </button>
         </div>
 

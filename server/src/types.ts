@@ -13,6 +13,7 @@ export interface ChatRequest {
   history: Message[];
   previous_response_id?: string;
   enableThinking?: boolean;
+  enableSearch?: boolean;
 }
 
 // API response
