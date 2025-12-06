@@ -2,6 +2,9 @@ import  React,{useState} from 'react';
 import  { Message } from '../../types/chat';
 import styles from './index.module.css';
 import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+
 
 interface ChatMessageProps {
   message: Message;
@@ -28,7 +31,9 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
               <a href={result.url} target="_blank" rel="noopener noreferrer" className={styles.searchResultLink}>
                 {index + 1}. {result.title}
               </a>
-              <div>{result.content}</div>
+              <div>
+                  {result.content}
+              </div>
             </div>
           ))}
         </div>
@@ -77,7 +82,42 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
         )}
 
         <div className={styles.content}>
-          <ReactMarkdown>{message.content}</ReactMarkdown>
+          <ReactMarkdown
+            components={{
+              code(props) {
+                // 修复关键点：从 props 中解构出 ref，避免将其通过 rest 传递给 SyntaxHighlighter
+                const { children, className, node, ref, ...rest } = props;
+
+                const match = /language-(\w+)/.exec(className || '');
+
+                return match ? (
+                  <div className={styles.codeBlockWrapper}>
+                    <div className={styles.codeBlockHeader}>
+                      <span className={styles.codeLang}>{match[1]}</span>
+                    </div>
+                    <SyntaxHighlighter
+                      {...rest} // 现在的 rest 中不包含 ref，不会报错
+                      children={String(children).replace(/\n$/, '')}
+                      style={vscDarkPlus}
+                      language={match[1]}
+                      PreTag="div"
+                      customStyle={{
+                        margin: 0,
+                        borderBottomLeftRadius: '8px',
+                        borderBottomRightRadius: '8px',
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <code {...rest} className={styles.inlineCode} ref={ref}>
+                    {children}
+                  </code>
+                );
+              },
+            }}
+          >
+            {message.content}
+          </ReactMarkdown>
         </div>
 
         {message.search_results && (

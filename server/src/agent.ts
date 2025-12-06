@@ -132,11 +132,10 @@ export const streamLLMMessage = async (
     if (enableSearch) {
       const lastMessage = messages[messages.length - 1];
       if (lastMessage && lastMessage.role === 'user') {
-        // 通知前端正在搜索（可选，通过 SSE 发送特殊事件，这里简化处理直接搜）
         const searchResults = await performSearch(lastMessage.content);
         searchResultsStr = searchResults;
 
-        console.log('Search results:', searchResults);
+        // console.log('Search results:', searchResults);
 
         if (searchResults) {
           searchContext = `\n\n参考网络搜索结果:\n${searchResults}\n\n请根据上述搜索结果和你的知识回答问题。`;
@@ -165,7 +164,7 @@ export const streamLLMMessage = async (
     const requestBody = {
       model: chatAgentConfig.model,
       messages: formattedMessages,
-      stream: true, // 启用流式输出
+      stream: true,
       stream_options: {
         include_usage: true,
       },
@@ -203,8 +202,8 @@ export const streamLLMMessage = async (
     const decoder = new TextDecoder('utf-8');
 
     let buffer = '';
-    let fullContent = ''; // 用于收集完整回复
-    let fullReasoning = ''; // 用于收集完整推理
+    let fullContent = '';
+    let fullReasoning = '';
 
     while (true) {
       const { done, value } = await reader.read();

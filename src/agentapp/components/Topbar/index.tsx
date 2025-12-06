@@ -23,9 +23,9 @@ const Topbar: React.FC<TopbarProps> = ({ isMobile, onToggleSidebar }) => {
         <h1 className={styles.logoText}>AI 聊天助手</h1>
       </div>
       <div className={styles.actions}>
-        <button className={styles.settingsButton} aria-label="设置">
+        {/* <button className={styles.settingsButton} aria-label="设置">
           ⚙️
-        </button>
+        </button> */}
       </div>
     </div>
   );
