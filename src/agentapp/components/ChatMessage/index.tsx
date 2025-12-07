@@ -85,7 +85,6 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
           <ReactMarkdown
             components={{
               code(props) {
-                // 修复关键点：从 props 中解构出 ref，避免将其通过 rest 传递给 SyntaxHighlighter
                 const { children, className, node, ref, ...rest } = props;
 
                 const match = /language-(\w+)/.exec(className || '');
@@ -96,7 +95,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                       <span className={styles.codeLang}>{match[1]}</span>
                     </div>
                     <SyntaxHighlighter
-                      {...rest} // 现在的 rest 中不包含 ref，不会报错
+                      {...rest}
                       children={String(children).replace(/\n$/, '')}
                       style={vscDarkPlus}
                       language={match[1]}

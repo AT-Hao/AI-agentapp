@@ -73,7 +73,7 @@ export const useChat = () => {
   );
 
   const sendMessage = useCallback(
-    async (content: string, enableThinking:boolean,enableSearch:boolean) => {
+    async (content: string, enableThinking:boolean,enableSearch:boolean,systemPrompt?:string) => {
       if (!content.trim() || !activeConversationId || isLoading) return;
 
       const userMessage: Message = {
@@ -133,7 +133,9 @@ export const useChat = () => {
               return conv;
             }),
           );
-        });
+        },
+        systemPrompt
+      );
       } catch (err: any) {
         setError(err.message || '发送失败');
         // 错误回滚（略）

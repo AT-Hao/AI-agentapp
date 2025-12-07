@@ -2,7 +2,7 @@
 export interface Message {
   id: string;
   content: string;
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant'|'system';
   reasoning_content?: string;
   search_results?: string;
   timestamp: Date;

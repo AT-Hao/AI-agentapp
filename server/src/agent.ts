@@ -13,7 +13,7 @@ import type { Response } from 'express';
 const sendLLMMessage = async (data: ChatRequest): Promise<ChatResponse> => {
   try {
     const messages = data.history.map(msg => ({
-      role: msg.role === 'user' ? 'user' : 'assistant',
+      role: msg.role,
       content: msg.content,
     }));
 
@@ -156,7 +156,7 @@ export const streamLLMMessage = async (
       }
 
       return {
-        role: msg.role === 'user' ? 'user' : 'assistant',
+        role: msg.role,
         content: content,
       };
     });

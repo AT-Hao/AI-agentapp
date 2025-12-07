@@ -60,7 +60,7 @@ app.delete('/api/conversations/:id', async (req, res) => {
 
 // 聊天接口
 app.post('/api/chat', async (req, res) => {
-  const { conversationId, message, enableThinking,enableSearch } = req.body;
+  const { conversationId, message, enableThinking,enableSearch,systemPrompt } = req.body;
 
   if (!conversationId || !message) {
     return res.status(400).json({ error: 'Missing conversationId or message' });
@@ -78,6 +78,17 @@ app.post('/api/chat', async (req, res) => {
     if (!conversation) {
       throw new Error('Conversation not found');
     }
+
+    if(systemPrompt && !conversation.messages.some(m=>m.role==='system')){
+      const sysMsg = {
+        id: Date.now().toString(),
+        role: 'system',
+        content: systemPrompt,
+        timestamp: new Date(),
+      };
+      conversation.messages.push(sysMsg as any);
+    }
+
 
     // 保存用户消息到 DB
     const userMsg = {

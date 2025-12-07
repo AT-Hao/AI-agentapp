@@ -9,7 +9,7 @@ interface ChatWindowProps {
   messages: Message[];
   isLoading: boolean;
   error: string | null;
-  onSendMessage: (content: string,enableThinking:boolean,enableSearch:boolean) => void;
+  onSendMessage: (content: string,enableThinking:boolean,enableSearch:boolean,systemPrompt?: string) => void;
   conversationTitle?: string;
 }
 

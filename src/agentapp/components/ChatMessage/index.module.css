@@ -227,7 +227,7 @@
   margin: 8px 0;
   border-radius: 8px;
   overflow: hidden;
-  background-color: #c8c7c7; /* 与 vscDarkPlus 背景一致 */
+  background-color: #c8c7c7;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 

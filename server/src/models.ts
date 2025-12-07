@@ -3,7 +3,7 @@ import mongoose, { Schema, type Document } from 'mongoose';
 // 消息接口
 export interface IMessage {
   id: string;
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant'|'system';
   content: string;
   reasoning_content?: string;
   search_results?: string;
@@ -22,7 +22,7 @@ export interface IConversation extends Document {
 // 消息 Schema
 const MessageSchema = new Schema({
   id: { type: String, required: true },
-  role: { type: String, required: true, enum: ['user', 'assistant'] },
+  role: { type: String, required: true, enum: ['user', 'assistant','system'] },
   content: { type: String, required: true },
   reasoning_content: {type: String},
   search_results: {type: String},

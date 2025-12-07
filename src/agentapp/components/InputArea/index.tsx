@@ -1,16 +1,27 @@
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import styles from './index.module.css';
+import PROMPTS from './prompts';
 
 interface InputAreaProps {
-  onSend: (content: string, enableThinking: boolean,enableSearch:boolean) => void;
+  onSend: (content: string, enableThinking: boolean,enableSearch:boolean,systemPrompt?:string) => void;
   isLoading: boolean;
 }
+
+
+const SYSTEM_PROMPT = [
+  {id:'default', label: '默认模式',prompt:PROMPTS.default},
+  {id:'coach', label: '兴趣教练', prompt:PROMPTS.coach},
+  {id:'life', label: '生活助手', prompt:PROMPTS.life},
+  {id:'coder',label: '代码助手', prompt:PROMPTS.coder}
+]
 
 const InputArea: React.FC<InputAreaProps> = ({ onSend, isLoading }) => {
   const [content, setContent] = useState('');
   const [isThinkingEnabled, setIsThinkingEnabled] = useState(false);
   const [isSearchEnabled, setIsSearchEnabled] = useState(false);
+  const [selectSysPrompt, setSelectSysPrompt] = useState('default');
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // 自动调整文本域高度
@@ -27,7 +38,9 @@ const InputArea: React.FC<InputAreaProps> = ({ onSend, isLoading }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (content.trim() && !isLoading) {
-      onSend(content,isThinkingEnabled,isSearchEnabled);
+      const setPrompt = SYSTEM_PROMPT.find(p => p.id === selectSysPrompt);
+      const systemPrompt = setPrompt ? setPrompt.prompt : '';
+      onSend(content,isThinkingEnabled,isSearchEnabled,systemPrompt);
       setContent('');
     }
   };
@@ -41,8 +54,20 @@ const InputArea: React.FC<InputAreaProps> = ({ onSend, isLoading }) => {
 
   return (
     <form onSubmit={handleSubmit} className={styles.inputForm}>
-
-      <div className={styles.inputWrapper}>
+      <div className={styles.container}>
+        <div className={styles.prompt}>
+          {SYSTEM_PROMPT.map(prompt => (
+            <button
+              key={prompt.id}
+              type="button"
+              className={`${styles.promptBtn} ${selectSysPrompt === prompt.id ? styles.promptBtnActive : ''}`}
+              onClick={() => setSelectSysPrompt(prompt.id)}
+            >
+              {prompt.label}
+            </button>
+          ))}
+        </div>
+        <div className={styles.inputWrapper}>
         <textarea
           ref={textareaRef}
           value={content}
@@ -74,6 +99,8 @@ const InputArea: React.FC<InputAreaProps> = ({ onSend, isLoading }) => {
         </div>
 
       </div>
+      </div>
+
 
     </form>
   );

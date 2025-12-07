@@ -49,6 +49,7 @@ export const sendChatMessage = async (
   enableThinking:boolean,
   enableSearch:boolean,
   onChunk: (chunk: string, reasoningChunk?:string, searchResults?:string) => void,
+  systemPrompt?: string
 ): Promise<void> => {
   try {
     const response = await fetch(`${BACKEND_API_BASE}/chat`, {
@@ -58,7 +59,7 @@ export const sendChatMessage = async (
         Accept: 'text/event-stream',
       },
       // 只需传 ID 和 Message，History 由后端从 DB 获取
-      body: JSON.stringify({ conversationId, message,enableThinking,enableSearch }),
+      body: JSON.stringify({ conversationId, message,enableThinking,enableSearch ,systemPrompt}),
     });
 
     if (!response.ok) {
